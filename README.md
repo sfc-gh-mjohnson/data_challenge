@@ -1,159 +1,77 @@
-# TerraClimate Snowflake Migration
+# Data Challenge - Satellite Imagery Analysis
 
-This repository contains a Snowflake-compatible version of the TerraClimate demonstration notebook.
+Snowflake notebooks for analyzing Landsat satellite imagery with cloud filtering and vegetation phenology.
 
-## 📁 Files
+## Requirements
 
-### Setup and Configuration
-- **`snowflake_setup.sql`** - Complete setup script that creates database, tables, network rules, external access integration, and UDFs with proper PyPI and network access configuration
+- Snowflake account with Container Runtime enabled
+- ACCOUNTADMIN role (for initial setup)
 
-### Notebooks
-- **`Demo_TerraClimate_Snowflake.ipynb`** - Snowflake-compatible notebook using Snowpark and Anaconda packages
-- **`Demo_TerraClimate.ipynb`** - Original local notebook (for reference)
+## Quick Start
 
-### Documentation
-- **`SNOWFLAKE_MIGRATION_GUIDE.md`** - Comprehensive migration guide with step-by-step instructions, troubleshooting, and best practices
-- **`requirements.txt`** - Python dependencies for local development
+### 1. Create External Access Integration
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Snowflake account with ACCOUNTADMIN access (for initial setup)
-- Snowflake Notebook environment
-
-### Setup Steps
-
-1. **Run Setup Script** (as ACCOUNTADMIN)
-   ```sql
-   -- Execute snowflake_setup.sql in Snowflake
-   -- This creates all necessary infrastructure and UDFs
-   ```
-
-2. **Upload Notebook**
-   - Go to Snowflake UI → Projects → Notebooks
-   - Import `Demo_TerraClimate_Snowflake.ipynb`
-   - Select a warehouse
-
-3. **Run Notebook**
-   - Execute cells sequentially
-   - The notebook will call the UDFs and process TerraClimate data
-
-## 🔑 Key Changes from Local Version
-
-| Aspect | Local | Snowflake |
-|--------|-------|-----------|
-| **Data Access** | Direct API calls | PyPI-enabled UDFs with External Access Integration |
-| **Packages** | pip install from requirements.txt | Anaconda packages + PyPI via UDFs |
-| **Processing** | Local pandas/xarray | Snowpark DataFrames |
-| **Storage** | Local files (GeoTIFF) | Snowflake stages and tables |
-| **Network** | Unrestricted | Controlled via network rules and integrations |
-
-## 📚 What's Configured
-
-The `snowflake_setup.sql` script sets up:
-
-1. **PyPI Repository Access** - Allows UDFs to use packages from PyPI
-2. **Network Rules** - Defines allowed external endpoints:
-   - Planetary Computer API (`planetarycomputer.microsoft.com`)
-   - Azure Blob Storage (`*.blob.core.windows.net`)
-   - Azure Data Lake (`*.dfs.core.windows.net`)
-   - Microsoft authentication endpoints
-3. **External Access Integration** - Enables UDFs to make network calls
-4. **Database and Schema** - `TERRACLIMATE_DB.CLIMATE_DATA`
-5. **UDFs** - Three functions for accessing TerraClimate metadata and data
-6. **Stored Procedure** - For data processing with Snowpark
-
-## ⚠️ Important Notes
-
-### Network Access
-UDFs require External Access Integration to call external APIs. The setup script creates:
-- Network rules defining allowed endpoints
-- External Access Integration enabling the access
-- UDFs configured to use the integration
-
-### Package Management
-- **Anaconda packages** (numpy, pandas, matplotlib) - Import directly in notebook cells
-- **PyPI packages** (pystac-client, planetary-computer) - Only available via UDFs
-
-### Function Recreation
-If you update network rules after creating UDFs, you must recreate the UDFs:
-```sql
-DROP FUNCTION IF EXISTS get_terraclimate_metadata();
--- Then recreate using CREATE OR REPLACE FUNCTION...
-```
-
-UDFs cache their configuration when created, so changes to network rules won't apply to existing functions.
-
-## 📖 Documentation
-
-See `SNOWFLAKE_MIGRATION_GUIDE.md` for:
-- Detailed migration steps
-- Architecture explanations
-- Package compatibility matrix
-- Troubleshooting guide
-- Best practices
-- Advanced topics
-
-## ✅ Verification
-
-After running the setup script, verify everything works:
+Run in a Snowflake SQL worksheet:
 
 ```sql
--- All three should return JSON without errors
-SELECT get_terraclimate_metadata();
-SELECT get_zarr_asset_info();
-SELECT prepare_terraclimate_access('2017-11-01', '2019-11-01', 139.94, 151.48, -39.74, -30.92);
+CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION pypi_access
+  ALLOWED_NETWORK_RULES = (snowflake.external_access.pypi_rule)
+  ENABLED = TRUE;
 ```
 
-## 🆘 Troubleshooting
+### 2. Create a Notebook with Container Runtime
 
-### Issue: Network connection errors
+1. Go to **Projects → Notebooks** in Snowflake
+2. Click **+ Notebook** → **Import .ipynb file**
+3. Upload `Landsat_Demo_Snowflake.ipynb`
+4. **Important:** Select **Container Runtime** (not Warehouse Runtime)
+5. Attach the `pypi_access` integration to the notebook
 
-**Symptoms:**
-- UDFs fail with "Failed to establish a new connection"
-- Test functions work but main functions fail
+### 3. Install Dependencies
 
-**Solutions:**
-1. Verify network rule includes all Azure endpoints (see `snowflake_setup.sql`)
-2. Verify External Access Integration exists and is enabled
-3. Recreate UDFs if you updated network rules after creating them
-4. Check that your role has USAGE on the integration
+In the first cell of your notebook, run:
 
-See the troubleshooting section in `SNOWFLAKE_MIGRATION_GUIDE.md` for detailed solutions.
-
-## 🎯 Success Criteria
-
-You're ready to use the notebook when:
-- ✅ `get_terraclimate_metadata()` returns collection metadata
-- ✅ `get_zarr_asset_info()` returns Zarr asset information  
-- ✅ No network connection errors
-- ✅ Notebook cells execute successfully
-
-## 📊 Data Flow
-
-```
-Snowflake Notebook
-    ↓
-Snowpark (for data manipulation)
-    ↓
-Anaconda Packages (numpy, pandas, matplotlib)
-    ↓
-PyPI-Enabled UDFs
-    ↓
-External Access Integration → Network Rules
-    ↓
-Planetary Computer API → TerraClimate Data
+```python
+!pip install -r requirements.txt
 ```
 
-## 🎓 Key Learnings
+Or install packages directly:
 
-1. **Two separate security features**: PyPI access ≠ Network access
-2. **External Access Integration**: Required for UDFs to make API calls
-3. **Network rules**: Must include all endpoints the libraries need
-4. **Function caching**: Recreate UDFs after infrastructure changes
-5. **Wildcard patterns**: Use `*.blob.core.windows.net` for Azure services
+```python
+!pip install pystac-client planetary-computer odc-stac dask xarray matplotlib
+```
 
----
+### 4. Run the Notebook
 
-**For detailed information, see `SNOWFLAKE_MIGRATION_GUIDE.md`**
+Execute cells sequentially. The notebook will:
+- Connect to Microsoft Planetary Computer
+- Load Landsat imagery for your area of interest
+- Apply cloud masking
+- Calculate NDVI vegetation index
+- Generate visualizations
 
+## Files
+
+| File | Description |
+|------|-------------|
+| `Landsat_Demo_Snowflake.ipynb` | Main notebook for Snowflake Container Runtime |
+| `Demo_Landsat_Viewer.ipynb` | Local/Jupyter version |
+| `requirements.txt` | Python dependencies |
+| `snowflake_setup.sql` | Additional network rules (if needed) |
+
+## Why Container Runtime?
+
+Container Runtime allows `pip install` for any PyPI package. This is required for geospatial packages like `odc-stac` and `planetary-computer` that aren't available in Snowflake's Anaconda channel.
+
+## Troubleshooting
+
+**"Could not find a Chunk Manager" error**
+- Add `import dask` and `import dask.array as da` before using chunked operations
+
+**Network/connection errors**
+- Verify the external access integration is attached to your notebook
+- Check that Container Runtime is selected (not Warehouse Runtime)
+
+**Package not found**
+- Run `!pip install <package>` in a notebook cell
+- Ensure you're using Container Runtime
