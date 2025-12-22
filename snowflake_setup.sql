@@ -68,5 +68,5 @@ create or replace api integration snowflake_labs
     enabled = true
     allowed_authentication_secrets = all;
 
-
+show integrations in account;
 
