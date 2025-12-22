@@ -1,18 +1,16 @@
--- ============================================================================
--- Snowflake Setup Planetary Computer
--- ============================================================================
--- This script creates external network access to install PyPI packages
--- and access Planetary Computer API endpoints. 
--- Note that network rules are stored in a database, while network policies 
--- are account-level objects that do not require a database. You can attach many
--- rules to the same policy.
--- ============================================================================
 USE ROLE ACCOUNTADMIN;
-CREATE DATABASE DATA_CHALLENGE;
-CREATE SCHEMA DATA_CHALLENGE.CORE_POLICY;
-USE SCHEMA DATA_CHALLENGE.CORE_POLICY;
+USE DATABASE SNOWFLAKE_LEARNING_DB;
+CREATE SCHEMA IF NOT EXISTS DATA;
+CREATE STAGE IF NOT EXISTS DATA.DATA_OUTPUT_STAGE
+    COMMENT = 'Stage for storing data and outputs';
 
-CREATE  NETWORK RULE if not exists DATA_CHALLENGE.CORE_POLICY.PLANETARY_COMPUTER_NETWORK_RULE
+CREATE NETWORK RULE IF NOT EXISTS SNOWFLAKE_LEARNING_DB.PUBLIC.PYPI_NETWORK_RULE
+  MODE = EGRESS
+  TYPE = HOST_PORT
+  VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
+
+
+CREATE NETWORK RULE IF NOT EXISTS SNOWFLAKE_LEARNING_DB.PUBLIC.PLANETARY_COMPUTER_NETWORK_RULE
   MODE = EGRESS
   TYPE = HOST_PORT
   VALUE_LIST = (
@@ -44,26 +42,31 @@ CREATE  NETWORK RULE if not exists DATA_CHALLENGE.CORE_POLICY.PLANETARY_COMPUTER
     'management.azure.com'
   );
 
-
--- -- Verify network rule creation
-SHOW NETWORK RULES LIKE 'planetary_computer%';
-DESCRIBE NETWORK RULE PLANETARY_COMPUTER_NETWORK_RULE;
-
-
-CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION DATA_CHALLENGE_EXTERNAL_ACCESS;
+CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION DATA_CHALLENGE_EXTERNAL_ACCESS
   ALLOWED_NETWORK_RULES = (
-    snowflake.external_access.pypi_rule, 
-    DATA_CHALLENGE.CORE_POLICY.PLANETARY_COMPUTER_NETWORK_RULE)
+    SNOWFLAKE_LEARNING_DB.PUBLIC.PYPI_NETWORK_RULE,
+    SNOWFLAKE_LEARNING_DB.PUBLIC.PLANETARY_COMPUTER_NETWORK_RULE
+  )
   ENABLED = TRUE;
+
 
 -- Verify integration creation
 DESCRIBE INTEGRATION DATA_CHALLENGE_EXTERNAL_ACCESS;
 
 
+-- Create Github Integrations
+create or replace api integration notebooks_workspaces
+    api_provider = git_https_api
+    api_allowed_prefixes = ('https://github.com/ailyninja/notebooks_workspaces_demo_repo')
+    enabled = true
+    allowed_authentication_secrets = all;
 
--- Create Stage for Data Storage
--- ============================================================================
-CREATE SCHEMA DATA;
-CREATE STAGE IF NOT EXISTS DATA_CHALLENGE.DATA.TERRACLIMATE_STAGE
-    COMMENT = 'Stage for storing TerraClimate data and outputs';
+
+create or replace api integration snowflake_labs
+    api_provider = git_https_api
+    api_allowed_prefixes = ('https://github.com/Snowflake-Labs')
+    enabled = true
+    allowed_authentication_secrets = all;
+
+
 
