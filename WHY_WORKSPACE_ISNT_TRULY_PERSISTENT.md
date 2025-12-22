@@ -35,7 +35,7 @@ From the [Working with the file system](https://docs.snowflake.com/en/user-guide
 
 ```
 /workspace/<workspace_hash>/
-  ├── site-packages_shared/     ❌ Ephemeral (created via pip/code)
+  ├── site-packages-shared/     ❌ Ephemeral (created via pip/code)
   │   ├── rioxarray/            ❌ Ephemeral
   │   ├── pandas/               ❌ Ephemeral
   │   └── ...
@@ -58,7 +58,7 @@ From the [Working with the file system](https://docs.snowflake.com/en/user-guide
 │                                                          │
 │  ┌────────────────────────────────────────────────┐    │
 │  │  Ephemeral Layer (Container Filesystem)        │    │
-│  │  /workspace/<hash>/site-packages_shared/       │    │
+│  │  /workspace/<hash>/site-packages-shared/       │    │
 │  │  /workspace/<hash>/temp_files/                 │    │
 │  │  ← Created by code/terminal                    │    │
 │  │  ← LOST on container suspend                   │    │
@@ -99,7 +99,7 @@ The container uses a **union mount** or **overlay filesystem**:
    - Writable by container processes
    - Discarded on container stop
 
-When you run `pip install --target /workspace/site-packages_shared`:
+When you run `pip install --target /workspace/site-packages-shared`:
 - Python creates files/directories
 - These writes go to the **ephemeral top layer**
 - They never reach the **persistent bottom layer**
@@ -305,7 +305,7 @@ Given the architectural limitations, here are the practical approaches:
 ### Approach 1: Re-install on Restart (Your Current Approach)
 ```python
 # SETUP_NOTEBOOK.ipynb
-!pip install --target /workspace/site-packages_shared -r requirements.txt
+!pip install --target /workspace/site-packages-shared -r requirements.txt
 ```
 
 **Pros:** Simple, works, familiar workflow  

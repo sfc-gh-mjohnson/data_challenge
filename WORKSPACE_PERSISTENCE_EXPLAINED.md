@@ -18,7 +18,7 @@ From the [Working with the file system](https://docs.snowflake.com/en/user-guide
 > - **Only files that are uploaded or created in Snowsight persist across sessions.**
 > - Files created from code or the terminal do not appear in the left-hand pane. This is a temporary limitation."
 
-**Key Takeaway:** Files created by `pip install --target /workspace/site-packages_shared` are created via code/terminal and therefore **do not persist** when the service suspends.
+**Key Takeaway:** Files created by `pip install --target /workspace/site-packages-shared` are created via code/terminal and therefore **do not persist** when the service suspends.
 
 ---
 
@@ -56,7 +56,7 @@ When idle timeout is reached:
 - Service suspends automatically
 - All containers shut down
 - Filesystem is wiped
-- **All packages in `/workspace/site-packages_shared` are deleted**
+- **All packages in `/workspace/site-packages-shared` are deleted**
 
 ### 2. Weekend Maintenance
 
@@ -198,12 +198,12 @@ These persist because they're **baked into the image**, not installed at runtime
 
 Packages installed via `pip install` go into the ephemeral layer:
 ```bash
-pip install --target /workspace/site-packages_shared -r requirements.txt
+pip install --target /workspace/site-packages-shared -r requirements.txt
 ```
 
 This command:
 1. Downloads packages from PyPI
-2. Extracts them to `/workspace/site-packages_shared`
+2. Extracts them to `/workspace/site-packages-shared`
 3. Files are written to the **ephemeral layer**
 4. **Lost when container suspends**
 
@@ -214,7 +214,7 @@ This command:
 ### The Shared Library Architecture's Dependency
 
 The shared library approach relies on:
-1. Creating a directory at runtime: `mkdir -p /workspace/site-packages_shared`
+1. Creating a directory at runtime: `mkdir -p /workspace/site-packages-shared`
 2. Installing packages at runtime: `pip install --target ...`
 3. Accessing those packages later: `sys.path.append(...)`
 
@@ -227,7 +227,7 @@ Timeline:
 ─────────────────────────────────────────────────────────────────
 Day 1, 9:00 AM:
   ✓ Run SETUP_NOTEBOOK.ipynb
-  ✓ Packages installed to /workspace/site-packages_shared
+  ✓ Packages installed to /workspace/site-packages-shared
   ✓ All notebooks work perfectly
 
 Day 1, 10:00 AM - Day 3:
@@ -238,7 +238,7 @@ Day 1, 10:00 AM - Day 3:
 Weekend (Saturday):
   ⚠️  Mandatory maintenance
   ⚠️  Service suspends
-  ❌ /workspace/site-packages_shared DELETED
+  ❌ /workspace/site-packages-shared DELETED
   ⚠️  Service restarts with clean filesystem
 
 Monday, 9:00 AM:
@@ -351,7 +351,7 @@ Add a check at the beginning of each notebook:
 import sys
 import os
 
-SITE_SHARED = "/workspace/site-packages_shared"
+SITE_SHARED = "/workspace/site-packages-shared"
 
 # Check if setup has been run
 if not os.path.exists(SITE_SHARED) or not os.listdir(SITE_SHARED):
@@ -397,7 +397,7 @@ Use `pip` caching and wheel files:
 
 ```bash
 # Install with cache
-pip install --target /workspace/site-packages_shared \
+pip install --target /workspace/site-packages-shared \
     --cache-dir /workspace/pip-cache \
     -r requirements.txt
 

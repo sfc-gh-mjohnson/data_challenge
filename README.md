@@ -117,7 +117,7 @@ Just open and run - no package installation needed!
 Instead of each notebook installing packages separately, we use a **shared library directory**:
 
 ```
-/workspace/site-packages_shared/
+/workspace/site-packages-shared/
 ```
 
 **Benefits:**

@@ -175,7 +175,7 @@ ERROR: Cannot install package X and Y together
 ### Method 1: Visual Check
 ```python
 import os
-path = "/workspace/site-packages_shared"
+path = "/workspace/site-packages-shared"
 if os.path.exists(path) and os.listdir(path):
     print("✓ Setup already run")
 else:

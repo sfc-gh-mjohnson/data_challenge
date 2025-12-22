@@ -21,7 +21,7 @@ By default, Snowflake Notebooks in Workspaces gives each notebook its own isolat
 
 ### Shared Library Approach
 Instead, we've implemented a shared library directory:
-- Location: `/workspace/site-packages_shared`
+- Location: `/workspace/site-packages-shared`
 - All packages from `requirements.txt` are installed here once
 - All notebooks add this directory to their Python path
 - Packages are shared across all notebooks in the workspace
@@ -87,7 +87,7 @@ And from the [Managing a notebook service](https://docs.snowflake.com/en/user-gu
 - Service configuration changes → packages lost
 
 **Impact:**
-- All packages in `/workspace/site-packages_shared` are permanently deleted
+- All packages in `/workspace/site-packages-shared` are permanently deleted
 - Must completely reinstall all packages
 - Typically requires 5-10 minutes to restore
 
@@ -262,7 +262,7 @@ Installation taking > 15 minutes
 
 ### Shared Directory Location
 ```
-/workspace/site-packages_shared
+/workspace/site-packages-shared
 ```
 
 ### Python Path Configuration
@@ -271,7 +271,7 @@ Each notebook includes this code at the top:
 ```python
 import sys
 
-SITE_SHARED = "/workspace/site-packages_shared"
+SITE_SHARED = "/workspace/site-packages-shared"
 
 if SITE_SHARED not in sys.path:
     sys.path.append(SITE_SHARED)
@@ -281,8 +281,8 @@ This adds the shared directory to Python's module search path.
 
 ### Package Installation Command
 ```bash
-mkdir -p /workspace/site-packages_shared
-pip install --target /workspace/site-packages_shared -r requirements.txt
+mkdir -p /workspace/site-packages-shared
+pip install --target /workspace/site-packages-shared -r requirements.txt
 ```
 
 The `--target` flag tells pip to install packages to a custom location instead of the default site-packages.
