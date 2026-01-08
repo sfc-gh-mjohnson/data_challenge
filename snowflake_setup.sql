@@ -1,7 +1,7 @@
 USE ROLE ACCOUNTADMIN;
 USE DATABASE SNOWFLAKE_LEARNING_DB;
-CREATE SCHEMA IF NOT EXISTS DATA;
-CREATE STAGE IF NOT EXISTS DATA.DATA_OUTPUT_STAGE
+
+CREATE STAGE IF NOT EXISTS PUBLIC.MY_STAGE
     COMMENT = 'Stage for storing data and outputs';
 
 CREATE NETWORK RULE IF NOT EXISTS SNOWFLAKE_LEARNING_DB.PUBLIC.PYPI_NETWORK_RULE
@@ -71,5 +71,12 @@ create or replace api integration snowflake_labs
 show integrations;
 
 /*
-Navigate [ ** Template Link Needed** ] to start the GETTING_STARTED_NOTEBOOK.ipynb
+Next Step: Run the Getting Started Notebook
+It can be accessed directly as a Snowflake template using this deeplink:
+
+https://app.snowflake.com/templates?template=getting_started_data_challenge_template
+
+The template is also located in the Snowflake-Labs repo on Github at 
+
+https://github.com/Snowflake-Labs/sfquickstarts/tree/master/site/sfguides/src/ey-ai-and-data-challenge/getting_started_notebook.ipynb
 */
