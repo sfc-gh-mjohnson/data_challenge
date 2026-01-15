@@ -1,8 +1,20 @@
+-- Copyright (c) 2026 Snowflake Inc.
+
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+
+-- http://www.apache.org/licenses/LICENSE-2.0
+
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+
+
 USE ROLE ACCOUNTADMIN;
 USE DATABASE SNOWFLAKE_LEARNING_DB;
-
-CREATE STAGE IF NOT EXISTS PUBLIC.MY_STAGE
-    COMMENT = 'Stage for storing data and outputs';
 
 CREATE NETWORK RULE IF NOT EXISTS SNOWFLAKE_LEARNING_DB.PUBLIC.PYPI_NETWORK_RULE
   MODE = EGRESS
@@ -54,29 +66,22 @@ CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION DATA_CHALLENGE_EXTERNAL_ACCESS
 DESCRIBE INTEGRATION DATA_CHALLENGE_EXTERNAL_ACCESS;
 
 
--- Create Github Integrations
-create or replace api integration notebooks_workspaces
-    api_provider = git_https_api
-    api_allowed_prefixes = ('https://github.com/ailyninja/notebooks_workspaces_demo_repo')
-    enabled = true
-    allowed_authentication_secrets = all;
+-- Create Github Integration
+
+CREATE OR REPLACE API INTEGRATION GITHUB
+  API_PROVIDER = git_https_api
+  API_ALLOWED_PREFIXES = ('https://github.com')
+  API_USER_AUTHENTICATION = (TYPE = SNOWFLAKE_GITHUB_APP)
+  ENABLED = TRUE;
+
+ALTER ACCOUNT SET USE_WORKSPACES_FOR_SQL = 'always';
 
 
-create or replace api integration snowflake_labs
-    api_provider = git_https_api
-    api_allowed_prefixes = ('https://github.com/Snowflake-Labs')
-    enabled = true
-    allowed_authentication_secrets = all;
-
-show integrations;
-
+select 'https://www.snowflake.com/en/developers/guides/ey-ai-and-data-challenge/#create-new-workspace-from-git-repo' 
+        as "Next Step: Click link below to return to Developer Guide, for instructions to create a Workspace from Git repo";
 /*
-Next Step: Run the Getting Started Notebook
-It can be accessed directly as a Snowflake template using this deeplink:
 
-https://app.snowflake.com/templates?template=getting_started_data_challenge_template
+Next Step: Click link below to return to Developer Guide, 
+           for instructions to create a Workspace from Git repo
 
-The template is also located in the Snowflake-Labs repo on Github at 
-
-https://github.com/Snowflake-Labs/sfquickstarts/tree/master/site/sfguides/src/ey-ai-and-data-challenge/getting_started_notebook.ipynb
 */
